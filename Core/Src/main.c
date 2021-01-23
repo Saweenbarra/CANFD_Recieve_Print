@@ -112,7 +112,7 @@ int main(void)
 		  if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
 		      {
 			  	  for(int i=0;i<8;i++){
-			  			  printf("%02x",RxData[i]);
+			  			  printf("%c",RxData[i]);
 			  	  }
 			  	  printf("\n");
 		      }
