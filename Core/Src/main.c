@@ -48,7 +48,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 FDCAN_RxHeaderTypeDef RxHeader;
-uint8_t RxData[8] = {0,0,0,0,0,0,0,0};
+uint8_t RxData[64];
 FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[8];
 
@@ -108,16 +108,7 @@ int main(void)
   while (1)
   {
 
-	  if(HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0){
-		  if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
-		      {
-			  	  for(int i=0;i<8;i++){
-			  			  printf("%c",RxData[i]);
-			  	  }
-			  	  printf("\n");
-		      }
-
-	  }
+	  HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -205,7 +196,7 @@ static void MX_FDCAN1_Init(void)
 
   /* USER CODE END FDCAN1_Init 1 */
   hfdcan1.Instance = FDCAN1;
-  hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
+  hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
   hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
@@ -216,13 +207,13 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.NominalTimeSeg2 = 16;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;
-  hfdcan1.Init.DataTimeSeg1 = 5;
-  hfdcan1.Init.DataTimeSeg2 = 4;
+  hfdcan1.Init.DataTimeSeg1 = 63;
+  hfdcan1.Init.DataTimeSeg2 = 16;
   hfdcan1.Init.MessageRAMOffset = 0;
   hfdcan1.Init.StdFiltersNbr = 2;
   hfdcan1.Init.ExtFiltersNbr = 2;
   hfdcan1.Init.RxFifo0ElmtsNbr = 10;
-  hfdcan1.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_8;
+  hfdcan1.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_64;
   hfdcan1.Init.RxFifo1ElmtsNbr = 0;
   hfdcan1.Init.RxFifo1ElmtSize = FDCAN_DATA_BYTES_8;
   hfdcan1.Init.RxBuffersNbr = 0;
@@ -419,7 +410,22 @@ static void FDCAN_Config(void){
 	  {
 	    Error_Handler();
 	  }
+	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+	  {
+	    /* Notification Error */
+	    Error_Handler();
+	  }
 
+}
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan1, uint32_t RxFifo0ITs)
+{
+	if (HAL_FDCAN_GetRxMessage(hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+			      {
+				  	  for(int i=0;i<64;i++){
+				  			  printf("%c",RxData[i]);
+				  	  }
+				  	  printf("\n");
+			      }
 }
 /* USER CODE END 4 */
 
